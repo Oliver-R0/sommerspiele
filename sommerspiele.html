@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sommerspiele – Anmeldung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Nunito+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --sun:#FFBE00; --sky:#2A9FD6; --grass:#3DB87A; --coral:#FF6B5B;
+  --ink:#1A1A2E; --ink2:#3D3D5C; --muted:#8888AA;
+  --bg:#F5F7FF; --card:#FFFFFF; --border:rgba(26,26,46,0.10);
+  --radius:16px; --radius-sm:10px;
+}
+body { font-family:'Nunito Sans',sans-serif; background:var(--bg); color:var(--ink); min-height:100vh; }
+header { background:linear-gradient(135deg,#FFD55A 0%,#FF9B3D 50%,#FF6B5B 100%); padding:2.5rem 1.5rem 2rem; text-align:center; position:relative; overflow:hidden; }
+header::before { content:'☀️'; position:absolute; font-size:80px; top:-10px; right:20px; opacity:.25; transform:rotate(15deg); }
+header h1 { font-family:'Nunito',sans-serif; font-size:2rem; font-weight:800; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,.15); letter-spacing:-.5px; }
+header p { font-size:1rem; color:rgba(255,255,255,.85); margin-top:4px; font-weight:600; }
+nav { background:var(--card); border-bottom:1px solid var(--border); display:flex; justify-content:center; gap:4px; padding:.5rem; position:sticky; top:0; z-index:100; box-shadow:0 2px 12px rgba(26,26,46,.06); flex-wrap:wrap; }
+.main-tab { font-family:'Nunito',sans-serif; font-weight:700; font-size:.875rem; padding:8px 20px; border-radius:99px; border:none; background:transparent; color:var(--muted); cursor:pointer; transition:all .2s; }
+.main-tab:hover { background:var(--bg); color:var(--ink2); }
+.main-tab.active { background:var(--ink); color:#fff; }
+main { max-width:900px; margin:0 auto; padding:1.5rem 1rem 3rem; }
+.section { display:none; }
+.section.active { display:block; }
+.card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; margin-bottom:1rem; box-shadow:0 2px 8px rgba(26,26,46,.04); }
+.card-title { font-family:'Nunito',sans-serif; font-weight:800; font-size:1.1rem; color:var(--ink); margin-bottom:1.25rem; }
+label { font-size:.8rem; font-weight:600; color:var(--muted); display:block; margin-bottom:5px; margin-top:14px; text-transform:uppercase; letter-spacing:.5px; }
+label:first-of-type { margin-top:0; }
+input[type=text], input[type=password], select { width:100%; padding:10px 14px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:'Nunito Sans',sans-serif; font-size:.95rem; color:var(--ink); background:var(--bg); transition:border-color .15s; appearance:none; }
+input[type=text]:focus, input[type=password]:focus, select:focus { outline:none; border-color:var(--sky); }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.grid4 { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+@media(max-width:600px){ .grid4{ grid-template-columns:1fr 1fr; } .grid2{ grid-template-columns:1fr; } }
+.btn-primary { width:100%; margin-top:1.25rem; background:linear-gradient(135deg,#FF9B3D,#FF6B5B); color:#fff; border:none; border-radius:var(--radius-sm); padding:13px; font-family:'Nunito',sans-serif; font-weight:800; font-size:1rem; cursor:pointer; transition:transform .15s,box-shadow .15s; box-shadow:0 4px 12px rgba(255,107,91,.35); }
+.btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(255,107,91,.45); }
+.btn-primary:active { transform:scale(.98); }
+.btn-sec { background:var(--bg); border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:8px 16px; font-family:'Nunito',sans-serif; font-weight:700; font-size:.85rem; color:var(--ink2); cursor:pointer; transition:background .15s; }
+.btn-sec:hover { background:#ECEEF8; }
+.btn-danger { border-color:#FFCDD0; color:#E74C3C; }
+.btn-danger:hover { background:#FFF0F0; }
+.msg { padding:10px 14px; border-radius:var(--radius-sm); font-size:.9rem; font-weight:600; margin-top:12px; min-height:20px; }
+.msg.ok { background:#E6F9F0; color:#1A7A50; }
+.msg.err { background:#FEF0EF; color:#C0392B; }
+.stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:1rem; }
+.stat { background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:1rem; text-align:center; }
+.stat-val { font-family:'Nunito',sans-serif; font-size:2rem; font-weight:800; color:var(--ink); }
+.stat-lbl { font-size:.75rem; color:var(--muted); margin-top:2px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+.ws-row { display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--border); font-size:.85rem; }
+.ws-row:last-child { border-bottom:none; }
+.ws-name { min-width:170px; color:var(--ink2); font-weight:600; }
+.progress-bar { flex:1; height:7px; background:var(--bg); border-radius:99px; overflow:hidden; }
+.progress-fill { height:100%; border-radius:99px; background:var(--grass); transition:width .4s; }
+.progress-fill.warn { background:var(--sun); }
+.progress-fill.full { background:var(--coral); }
+.ws-count { min-width:50px; text-align:right; color:var(--muted); font-size:.8rem; }
+#admin-tabs { display:flex; gap:6px; margin-bottom:1rem; }
+.sub-tab { font-family:'Nunito',sans-serif; font-weight:700; font-size:.8rem; padding:6px 16px; border-radius:99px; border:1.5px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; }
+.sub-tab.active { background:var(--ink); color:#fff; border-color:var(--ink); }
+.filter-row { display:flex; gap:6px; margin-bottom:.75rem; flex-wrap:wrap; }
+.filter-btn { font-size:.8rem; font-weight:700; padding:5px 14px; border:1.5px solid var(--border); border-radius:99px; background:transparent; cursor:pointer; color:var(--muted); font-family:'Nunito',sans-serif; }
+.filter-btn.active { background:var(--sky); color:#fff; border-color:var(--sky); }
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:.8rem; }
+th { text-align:left; padding:7px 10px; border-bottom:2px solid var(--border); font-size:.72rem; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.5px; white-space:nowrap; }
+td { padding:6px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+.name-cell { font-weight:700; color:var(--ink); white-space:nowrap; }
+.wish-cell { color:var(--muted); font-size:.75rem; max-width:110px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.empty-cell { text-align:center; color:var(--muted); padding:2rem; }
+.pill { display:inline-block; font-size:.68rem; font-weight:800; font-family:'Nunito',sans-serif; padding:2px 7px; border-radius:99px; margin-right:3px; vertical-align:middle; }
+.pill.green { background:#E6F9F0; color:#1A7A50; }
+.pill.amber { background:#FFF8E1; color:#B8860B; }
+.pill.blue  { background:#E8F4FD; color:#1A6A9A; }
+.pill.warn  { background:#FFF8E1; color:#B8860B; }
+.pill.full  { background:#FEF0EF; color:#C0392B; }
+.ws-details { border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:8px; overflow:hidden; }
+.ws-details summary { list-style:none; display:flex; align-items:center; justify-content:space-between; padding:10px 14px; cursor:pointer; font-weight:700; font-size:.9rem; gap:8px; }
+.ws-details summary::-webkit-details-marker { display:none; }
+.ws-details summary:hover { background:var(--bg); }
+.ws-detail-name { flex:1; }
+.ws-detail-desc { font-size:.8rem; color:var(--muted); font-weight:400; margin-top:1px; }
+.ws-detail-body { padding:12px 14px; border-top:1px solid var(--border); }
+.ws-detail-info { font-size:.82rem; color:var(--ink2); margin-bottom:10px; line-height:1.6; }
+.ws-detail-badges { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+.badge-tag { font-size:.72rem; font-weight:700; font-family:'Nunito',sans-serif; padding:3px 9px; border-radius:99px; background:var(--bg); border:1px solid var(--border); color:var(--ink2); }
+.ws-detail-list { display:flex; flex-direction:column; gap:3px; font-size:.82rem; color:var(--ink2); }
+.muted { color:var(--muted); font-style:italic; }
+.top-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:8px; }
+.top-bar-title { font-family:'Nunito',sans-serif; font-weight:800; font-size:1.1rem; }
+.btn-row { display:flex; gap:8px; flex-wrap:wrap; }
+.info-box { background:#E8F4FD; border-left:4px solid var(--sky); border-radius:0 var(--radius-sm) var(--radius-sm) 0; padding:12px 16px; font-size:.875rem; color:#1A4A6A; margin-bottom:1rem; }
+.info-box strong { font-weight:700; }
+.pw-overlay { position:fixed; inset:0; background:rgba(26,26,46,.6); display:flex; align-items:center; justify-content:center; z-index:999; }
+.pw-box { background:var(--card); border-radius:var(--radius); padding:2rem; width:320px; text-align:center; }
+.pw-box h2 { font-family:'Nunito',sans-serif; font-weight:800; margin-bottom:.5rem; font-size:1.3rem; }
+.pw-box p { color:var(--muted); font-size:.875rem; margin-bottom:1rem; }
+.pw-box input { margin-bottom:.75rem; }
+.pw-err { color:#C0392B; font-size:.8rem; margin-top:6px; min-height:16px; }
+.wish-badge { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; font-family:'Nunito',sans-serif; font-weight:800; font-size:.75rem; background:var(--sun); color:#1A1A2E; margin-right:5px; vertical-align:middle; }
+/* Workshop-Karten im Anmeldeformular */
+.ws-info-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:10px; margin-top:1rem; }
+.ws-info-card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; }
+.ws-info-card h4 { font-family:'Nunito',sans-serif; font-weight:800; font-size:.9rem; margin-bottom:4px; }
+.ws-info-card p { font-size:.78rem; color:var(--ink2); line-height:1.5; }
+.ws-info-card .ws-tags { display:flex; gap:4px; flex-wrap:wrap; margin-top:6px; }
+.ws-info-card .ws-tag { font-size:.68rem; font-weight:700; font-family:'Nunito',sans-serif; padding:2px 7px; border-radius:99px; background:var(--card); border:1px solid var(--border); color:var(--muted); }
+@media(max-width:500px){ .stat-grid{ grid-template-columns:1fr 1fr; } header h1{ font-size:1.5rem; } }
+</style>
+</head>
+<body>
+
+<div class="pw-overlay" id="pw-overlay" style="display:none">
+  <div class="pw-box">
+    <h2>🔒 Verwaltung</h2>
+    <p>Bitte Admin-Passwort eingeben</p>
+    <input type="password" id="pw-input" placeholder="Passwort" />
+    <button class="btn-primary" style="margin-top:0" onclick="checkPw()">Weiter</button>
+    <div class="pw-err" id="pw-err"></div>
+  </div>
+</div>
+
+<header>
+  <h1>🏖️ Sommerspiele</h1>
+  <p>Anmeldung für Klassen 5 &amp; 6</p>
+</header>
+
+<nav>
+  <button class="main-tab active" id="nav-anmeldung" onclick="switchTab('anmeldung',this)">✏️ Anmelden</button>
+  <button class="main-tab" id="nav-workshops" onclick="switchTab('workshops',this)">📋 Workshops</button>
+  <button class="main-tab" id="nav-verwaltung" onclick="requireAdmin('verwaltung',this)">⚙️ Verwaltung</button>
+  <button class="main-tab" id="nav-ergebnis" onclick="requireAdmin('ergebnis',this)">🏆 Ergebnis</button>
+</nav>
+
+<main>
+
+  <!-- ===== ANMELDUNG ===== -->
+  <div id="tab-anmeldung" class="section active">
+    <div class="info-box">
+      <strong>So funktioniert's:</strong> Gib deinen Namen und deine Klasse ein, dann wähle 4 Workshops in der Reihenfolge, wie gerne du sie machen möchtest. Du wirst am Ende in <strong>2 Workshops</strong> eingeteilt – wir versuchen deinen Erstwunsch zu erfüllen!
+    </div>
+    <div class="card">
+      <div class="card-title">Deine Anmeldung</div>
+      <div class="grid2">
+        <div>
+          <label>Vorname</label>
+          <input type="text" id="f-vorname" placeholder="Max" autocomplete="given-name" />
+        </div>
+        <div>
+          <label>Nachname</label>
+          <input type="text" id="f-nachname" placeholder="Mustermann" autocomplete="family-name" />
+        </div>
+      </div>
+      <label>Klasse</label>
+      <select id="f-klasse">
+        <option value="">– bitte wählen –</option>
+        <option>5a</option><option>5b</option><option>5c</option><option>5d</option>
+        <option>6a</option><option>6b</option><option>6c</option><option>6d</option>
+      </select>
+      <label style="margin-top:1.25rem">Deine 4 Wunsch-Workshops</label>
+      <div class="grid4">
+        <div>
+          <label><span class="wish-badge">1</span>Erstwunsch</label>
+          <select id="w1" onchange="guardSelects()"><option value="">– wählen –</option></select>
+        </div>
+        <div>
+          <label><span class="wish-badge">2</span>Zweitwunsch</label>
+          <select id="w2" onchange="guardSelects()"><option value="">– wählen –</option></select>
+        </div>
+        <div>
+          <label><span class="wish-badge">3</span>Drittwunsch</label>
+          <select id="w3" onchange="guardSelects()"><option value="">– wählen –</option></select>
+        </div>
+        <div>
+          <label><span class="wish-badge">4</span>Viertwunsch</label>
+          <select id="w4" onchange="guardSelects()"><option value="">– wählen –</option></select>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="submitForm()">🎉 Jetzt anmelden</button>
+      <div class="msg" id="form-msg"></div>
+    </div>
+  </div>
+
+  <!-- ===== WORKSHOPS ===== -->
+  <div id="tab-workshops" class="section">
+    <div class="ws-info-grid" id="ws-cards-list"></div>
+  </div>
+
+  <!-- ===== VERWALTUNG ===== -->
+  <div id="tab-verwaltung" class="section">
+    <div class="top-bar">
+      <span class="top-bar-title">Verwaltung</span>
+      <div class="btn-row">
+        <button class="btn-sec" onclick="runAssignment()">🪄 Zuteilung berechnen</button>
+        <button class="btn-sec" onclick="exportCSV()">⬇️ Excel exportieren</button>
+        <button class="btn-sec btn-danger" onclick="clearAll()">🗑️ Alles löschen</button>
+      </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-val" id="st-total">…</div><div class="stat-lbl">Anmeldungen</div></div>
+      <div class="stat"><div class="stat-val" id="st-assigned">…</div><div class="stat-lbl">Zugeteilt</div></div>
+      <div class="stat"><div class="stat-val" id="st-slots">340</div><div class="stat-lbl">Plätze gesamt</div></div>
+    </div>
+    <div id="admin-tabs">
+      <button class="sub-tab active" onclick="setAdminTab('list',this)">Schülerliste</button>
+      <button class="sub-tab" onclick="setAdminTab('ws',this)">Workshop-Auslastung</button>
+    </div>
+    <div id="admin-list">
+      <div class="filter-row" id="filter-row">
+        <button class="filter-btn active" onclick="setFilter('alle',this)">Alle</button>
+        <button class="filter-btn" onclick="setFilter('5',this)">5. Klasse</button>
+        <button class="filter-btn" onclick="setFilter('6',this)">6. Klasse</button>
+      </div>
+      <div class="card" style="padding:.75rem 0">
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Name</th><th>Kl.</th>
+              <th>Wunsch 1</th><th>Wunsch 2</th><th>Wunsch 3</th><th>Wunsch 4</th>
+              <th>Zuteilung 1</th><th>Zuteilung 2</th>
+            </tr></thead>
+            <tbody id="student-tbody"><tr><td colspan="8" class="empty-cell">Lade Daten…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div id="admin-ws" style="display:none">
+      <div class="card"><div id="ws-overview">Lade…</div></div>
+    </div>
+  </div>
+
+  <!-- ===== ERGEBNIS ===== -->
+  <div id="tab-ergebnis" class="section">
+    <div class="top-bar">
+      <span class="top-bar-title">Ergebnis nach Workshop</span>
+      <button class="btn-sec" onclick="exportCSV()">⬇️ Excel exportieren</button>
+    </div>
+    <div id="result-by-ws"></div>
+  </div>
+
+</main>
+
+<script type="module">
+// ============================================================
+// Alle Funktionen in EINEM einzigen type="module"-Script.
+// So gibt es keinen Scope-Konflikt zwischen den Scripts.
+// ============================================================
+
+import { initializeApp }      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import * as XLSX from "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm";
+import { getDatabase, ref, push, onValue, set, update }
+                               from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// ============================================================
+// 🔧 FIREBASE KONFIGURATION – hier deine eigenen Werte eintragen
+// ============================================================
+const firebaseConfig = {
+  apiKey:            "AIzaSyACWWN-tjmBVpVH5qUmhWZhqOXR6PrSjwg",
+  authDomain:        "sommerspiele-bd99f.firebaseapp.com",
+  databaseURL:       "https://sommerspiele-bd99f-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "sommerspiele-bd99f",
+  storageBucket:     "sommerspiele-bd99f.firebasestorage.app",
+  messagingSenderId: "469028167798",
+  appId:             "1:469028167798:web:b6d16c86c4947d816aff57"
+};
+// ============================================================
+
+// ——— Admin-Passwort (hier ändern!) ———
+const ADMIN_PASSWORD = 'sommer2025';
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+const studentsRef = ref(db, 'students');
+
+// ——— Workshop-Daten mit Beschreibung ———
+const WORKSHOPS = [
+  {
+    name: "Wasserspiele", max: 40, emoji: "💧",
+    desc: "Wasserspaß pur! Verschiedene Spiele und Stationen rund ums kühle Nass.",
+    details: "Vom Wasserbombenwerfen bis zum Schwamm-Staffellauf – hier wird es garantiert nass! Bitte Wechselkleidung mitbringen.",
+    tags: ["🌊 Nass", "😄 Spaß", "🌞 Outdoor"]
+  },
+  {
+    name: "Badminton Turnier", max: 20, emoji: "🏸",
+    desc: "Kleines Turnier im Einzel oder Doppel – wer wird Champion?",
+    details: "Gespielt wird auf mehreren Feldern in der Turnhalle oder auf dem Schulhof. Sportkleidung und saubere Hallenschuhe erforderlich.",
+    tags: ["🏅 Turnier", "🏃 Aktiv", "🏫 Halle"]
+  },
+  {
+    name: "Fußball Turnier", max: 44, emoji: "⚽",
+    desc: "Klassenübergreifendes Fußballturnier auf dem Schulhof.",
+    details: "Teams werden vor Ort gemischt, damit alle faire Chancen haben. Gespielt wird nach vereinfachten Regeln, Schiedsrichter ist dabei.",
+    tags: ["🏅 Turnier", "⚽ Fußball", "🌞 Outdoor"]
+  },
+  {
+    name: "Völkerball Turnier", max: 32, emoji: "🎯",
+    desc: "Der Klassiker! Teams treten gegeneinander an.",
+    details: "Gespielt nach klassischen Völkerball-Regeln. Schnelle Runden, viel Action. Sportklamotten empfohlen.",
+    tags: ["🏅 Turnier", "🎯 Geschick", "💪 Team"]
+  },
+  {
+    name: "Fangspiele", max: 40, emoji: "🏃",
+    desc: "Verschiedene Fang- und Laufspiele für alle – von Kettenfangen bis Räuber & Gendarm.",
+    details: "Kein Turnier, sondern gemeinsames Spielen mit vielen Variationen. Auch für weniger sportliche Kinder gut geeignet.",
+    tags: ["🏃 Laufen", "😄 Spaß", "👫 Alle"]
+  },
+  {
+    name: "Capture the Flag", max: 30, emoji: "🚩",
+    desc: "Strategie & Teamwork: Die Fahne des Gegners stehlen, ohne gefangen zu werden!",
+    details: "Gespielt auf dem großen Schulgelände. Zwei Teams verstecken ihre Fahne und versuchen, die des anderen zu klauen. Taktik gefragt!",
+    tags: ["🚩 Strategie", "💪 Team", "🌞 Outdoor"]
+  },
+  {
+    name: "Ballspiele", max: 35, emoji: "🏀",
+    desc: "Freies Spielen mit verschiedenen Bällen und Spielformen – Basketball, Brennball, Dodgeball u.v.m.",
+    details: "Kein festes Programm – die Gruppe entscheidet gemeinsam, was gespielt wird. Alles ist möglich!",
+    tags: ["🎈 Vielseitig", "😄 Locker", "👫 Alle"]
+  },
+  {
+    name: "Inliner fahren", max: 15, emoji: "🛼",
+    desc: "Inliner mitbringen und Kurse & Parcours fahren. Nur für geübte Fahrer!",
+    details: "Eigene Inliner, Helm und Knieschützer sind Pflicht! Anfänger bitte einen anderen Workshop wählen. Parcours auf dem Schulhof.",
+    tags: ["🛼 Inliner", "⚠️ Ausrüstung nötig", "🏆 Geübt"]
+  },
+  {
+    name: "Beach Handball", max: 24, emoji: "🤾",
+    desc: "Handball auf Sand – schneller, lockerer, und mit coolen Wurftechniken!",
+    details: "Gespielt wird auf dem Sandfeld (oder mit Sandersatz). Barfuß oder Strandschuhe empfohlen. Regeln werden erklärt.",
+    tags: ["🤾 Handball", "🏖️ Sand", "💪 Team"]
+  },
+  {
+    name: "Das Chaosspiel", max: 30, emoji: "🌀",
+    desc: "Was genau gespielt wird, bleibt ein Geheimnis – garantiert verrückt und unvorhergesehen!",
+    details: "Kreative, chaotische Spielformen, die jedes Mal anders sind. Für alle, die Überraschungen mögen und flexibel sind.",
+    tags: ["🌀 Überraschung", "😂 Lustig", "🎲 Kreativ"]
+  },
+  {
+    name: "Wikinger Schach", max: 30, emoji: "🪵",
+    desc: "Das skandinavische Wurfspiel Kubb – Konzentration trifft Geschicklichkeit.",
+    details: "Holzklötze werden mit Stäben umgeworfen, am Ende steht der König. Kein Vorwissen nötig, die Regeln sind schnell erklärt.",
+    tags: ["🪵 Holz", "🎯 Geschick", "🧠 Taktik"]
+  },
+];
+
+let students = {};
+let currentFilter = 'alle';
+let adminUnlocked = false;
+let pendingTab = null;
+let pendingBtn = null;
+
+// ——— Tab-Switching (global via window) ———
+window.switchTab = function(name, btn) {
+  document.querySelectorAll('.main-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  else {
+    const nb = document.getElementById('nav-'+name);
+    if (nb) nb.classList.add('active');
+  }
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const t = document.getElementById('tab-'+name);
+  if (t) t.classList.add('active');
+};
+
+window.requireAdmin = function(tab, btn) {
+  if (adminUnlocked) { window.switchTab(tab, btn); return; }
+  pendingTab = tab; pendingBtn = btn;
+  document.getElementById('pw-overlay').style.display = 'flex';
+  document.getElementById('pw-input').value = '';
+  document.getElementById('pw-err').textContent = '';
+  setTimeout(() => document.getElementById('pw-input').focus(), 50);
+};
+
+window.checkPw = function() {
+  const val = document.getElementById('pw-input').value;
+  if (val === ADMIN_PASSWORD) {
+    adminUnlocked = true;
+    document.getElementById('pw-overlay').style.display = 'none';
+    window.switchTab(pendingTab, pendingBtn);
+  } else {
+    document.getElementById('pw-err').textContent = 'Falsches Passwort.';
+  }
+};
+
+document.getElementById('pw-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') window.checkPw();
+  if (e.key === 'Escape') document.getElementById('pw-overlay').style.display = 'none';
+});
+
+// ——— Select-Initialisierung ———
+function initSelects() {
+  const opts = WORKSHOPS.map(w => `<option value="${w.name}">${w.emoji} ${w.name} (max ${w.max})</option>`).join('');
+  [1,2,3,4].forEach(i => {
+    const sel = document.getElementById('w'+i);
+    sel.innerHTML = '<option value="">– bitte wählen –</option>' + opts;
+  });
+}
+
+window.guardSelects = function() {
+  const chosen = [1,2,3,4].map(i => document.getElementById('w'+i).value).filter(Boolean);
+  [1,2,3,4].forEach(i => {
+    const sel = document.getElementById('w'+i);
+    const cur = sel.value;
+    Array.from(sel.options).forEach(opt => {
+      if (!opt.value) return;
+      opt.disabled = chosen.includes(opt.value) && opt.value !== cur;
+    });
+  });
+};
+
+// ——— Workshop-Info-Karten ———
+function renderWorkshopCards() {
+  document.getElementById('ws-cards-list').innerHTML = WORKSHOPS.map(w => `
+    <div class="ws-info-card">
+      <h4>${w.emoji} ${w.name} <span style="font-weight:400;color:var(--muted);font-size:.75rem">(max ${w.max} Plätze)</span></h4>
+      <p>${w.details}</p>
+    </div>
+  `).join('');
+}
+
+// ——— Firebase Live-Listener ———
+onValue(studentsRef, snap => {
+  students = snap.val() || {};
+  updateUI();
+});
+
+function updateUI() {
+  updateStats();
+  updateWorkshopBars();
+  renderStudentTable();
+  renderResultTab();
+}
+
+// ——— Anmeldung ———
+window.submitForm = function() {
+  const vn = document.getElementById('f-vorname').value.trim();
+  const nn = document.getElementById('f-nachname').value.trim();
+  const kl = document.getElementById('f-klasse').value;
+  const wishes = [1,2,3,4].map(i => document.getElementById('w'+i).value);
+  const msgEl = document.getElementById('form-msg');
+
+  if (!vn || !nn)              return showMsg(msgEl,'err','Bitte Vor- und Nachnamen eingeben.');
+  if (!kl)                     return showMsg(msgEl,'err','Bitte Klasse auswählen.');
+  if (wishes.some(w => !w))    return showMsg(msgEl,'err','Bitte alle 4 Wünsche auswählen.');
+  if (new Set(wishes).size < 4) return showMsg(msgEl,'err','Bitte 4 verschiedene Workshops wählen.');
+
+  const dup = Object.values(students).find(s => s.vn===vn && s.nn===nn && s.kl===kl);
+  if (dup) return showMsg(msgEl,'err','Diese Person ist bereits angemeldet.');
+
+  push(studentsRef, { vn, nn, kl, wishes, assigned: [], ts: Date.now() });
+  showMsg(msgEl,'ok',`✓ ${vn} ${nn} (${kl}) wurde erfolgreich angemeldet!`);
+  ['f-vorname','f-nachname'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-klasse').value = '';
+  [1,2,3,4].forEach(i => document.getElementById('w'+i).value = '');
+  setTimeout(() => { msgEl.textContent=''; msgEl.className='msg'; }, 5000);
+};
+
+// ——— Zuteilung ———
+window.runAssignment = function() {
+  const arr = Object.entries(students);
+  if (!arr.length) return alert('Keine Anmeldungen vorhanden.');
+  if (!confirm(`Zuteilung für ${arr.length} Schüler/innen berechnen?\n\nBestehende Zuteilungen werden überschrieben.`)) return;
+
+  const counts = {};
+  WORKSHOPS.forEach(w => counts[w.name] = 0);
+  const shuffled = [...arr].sort(() => Math.random() - 0.5);
+  const result = {};
+  shuffled.forEach(([k]) => result[k] = []);
+
+  function tryAssign(key, student, slot) {
+    // Erstwunsch bis Viertwunsch versuchen
+    for (let p = 0; p < 4; p++) {
+      const ws = student.wishes[p];
+      const cap = WORKSHOPS.find(w => w.name === ws);
+      if (cap && counts[ws] < cap.max && !result[key].includes(ws)) {
+        result[key][slot] = ws; counts[ws]++; return;
+      }
+    }
+    // Fallback: erster freier Workshop
+    for (const w of WORKSHOPS) {
+      if (counts[w.name] < w.max && !result[key].includes(w.name)) {
+        result[key][slot] = w.name; counts[w.name]++; return;
+      }
+    }
+  }
+
+  shuffled.forEach(([k,s]) => tryAssign(k, s, 0));
+  shuffled.forEach(([k,s]) => tryAssign(k, s, 1));
+
+  const updates = {};
+  arr.forEach(([k]) => { updates[`students/${k}/assigned`] = result[k] || []; });
+  update(ref(db), updates).then(() => alert('✓ Zuteilung abgeschlossen! Sieh dir das Ergebnis im "Ergebnis"-Tab an.'));
+};
+
+window.clearAll = function() {
+  if (!confirm('Wirklich ALLE Anmeldungen löschen?\nDas kann nicht rückgängig gemacht werden!')) return;
+  set(studentsRef, null);
+};
+
+window.setFilter = function(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderStudentTable();
+};
+
+window.setAdminTab = function(t, btn) {
+  document.querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('admin-list').style.display = t==='list' ? '' : 'none';
+  document.getElementById('admin-ws').style.display   = t==='ws'   ? '' : 'none';
+};
+
+window.exportCSV = function() {
+  const arr = Object.values(students);
+  if (!arr.length) return alert('Keine Daten zum Exportieren.');
+
+  const notAssigned = arr.filter(s => !s.assigned || s.assigned.length === 0);
+  if (notAssigned.length > 0 && !confirm(`${notAssigned.length} Schüler/innen haben noch keine Zuteilung. Trotzdem exportieren?`)) return;
+
+  const wb = XLSX.utils.book_new();
+
+  // Hilfsfunktion: Zelle stylen (Farbe, Fett, Ausrichtung)
+  function styleSheet(ws, rows) {
+    // SheetJS Community hat kein volles Styling – wir setzen Spaltenbreiten & Zeilenhöhen
+    return ws;
+  }
+
+  // ——— Ein Tabellenblatt pro Klasse ———
+  // Alle vorhandenen Klassen ermitteln, sortiert
+  const klassen = [...new Set(arr.map(s => s.kl||'').filter(Boolean))].sort();
+
+  klassen.forEach(kl => {
+    const schueler = arr
+      .filter(s => s.kl === kl)
+      .sort((a,b) => (a.nn||'').localeCompare(b.nn||''));
+
+    // Kopfzeile mit Klassenname
+    const rows = [];
+    rows.push([`Sommerspiele – Klasse ${kl}`, '', '', '']);
+    rows.push(['']);  // Leerzeile
+    rows.push(['#', 'Nachname', 'Vorname', 'Workshop 1', 'Workshop 2']);
+
+    schueler.forEach((s, i) => {
+      const a0 = s.assigned?.[0] || '– noch nicht zugeteilt –';
+      const a1 = s.assigned?.[1] || '– noch nicht zugeteilt –';
+      rows.push([i + 1, s.nn||'', s.vn||'', a0, a1]);
+    });
+
+    rows.push(['']);  // Leerzeile
+    rows.push([`Gesamt: ${schueler.length} Schüler/innen`, '', '', '', '']);
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    // Spaltenbreiten
+    ws['!cols'] = [
+      { wch: 4 },   // #
+      { wch: 18 },  // Nachname
+      { wch: 14 },  // Vorname
+      { wch: 24 },  // Workshop 1
+      { wch: 24 },  // Workshop 2
+    ];
+
+    // Zeilenhöhen: Titelzeile höher
+    ws['!rows'] = [{ hpt: 22 }, { hpt: 6 }, { hpt: 16 }];
+
+    // Merge Titelzelle über alle Spalten
+    ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }];
+
+    XLSX.utils.book_append_sheet(wb, ws, `Klasse ${kl}`);
+  });
+
+  // ——— Übersichtsblatt: alle Klassen zusammen ———
+  const overviewRows = [];
+  overviewRows.push(['Sommerspiele – Gesamtübersicht', '', '', '', '']);
+  overviewRows.push(['']);
+  overviewRows.push(['#', 'Nachname', 'Vorname', 'Klasse', 'Workshop 1', 'Workshop 2']);
+
+  arr.sort((a,b) => (a.kl||'').localeCompare(b.kl||'') || (a.nn||'').localeCompare(b.nn||''))
+    .forEach((s, i) => {
+      overviewRows.push([
+        i + 1,
+        s.nn||'',
+        s.vn||'',
+        s.kl||'',
+        s.assigned?.[0] || '–',
+        s.assigned?.[1] || '–',
+      ]);
+    });
+  overviewRows.push(['']);
+  overviewRows.push([`Gesamt: ${arr.length} Schüler/innen`]);
+
+  const wsOverview = XLSX.utils.aoa_to_sheet(overviewRows);
+  wsOverview['!cols'] = [4, 18, 14, 8, 24, 24].map(w => ({ wch: w }));
+  wsOverview['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
+  XLSX.utils.book_append_sheet(wb, wsOverview, 'Alle Klassen');
+
+  XLSX.writeFile(wb, 'sommerspiele_klassenlisten.xlsx');
+};
+
+// ——— UI-Helpers ———
+function showMsg(el, type, text) { el.className='msg '+type; el.textContent=text; }
+
+function wishRank(student, wsName) {
+  const i = (student.wishes||[]).indexOf(wsName);
+  if (i===0) return '<span class="pill green">W1</span>';
+  if (i===1) return '<span class="pill green">W2</span>';
+  if (i===2) return '<span class="pill amber">W3</span>';
+  if (i===3) return '<span class="pill amber">W4</span>';
+  return '<span class="pill blue">Alt</span>';
+}
+
+function updateStats() {
+  const arr = Object.values(students);
+  document.getElementById('st-total').textContent    = arr.length;
+  document.getElementById('st-assigned').textContent = arr.filter(s=>s.assigned&&s.assigned.length>0).length;
+}
+
+function workshopCounts() {
+  const c = {};
+  WORKSHOPS.forEach(w => c[w.name]=0);
+  Object.values(students).forEach(s => (s.assigned||[]).forEach(a => { if(a) c[a]=(c[a]||0)+1; }));
+  return c;
+}
+
+function updateWorkshopBars() {
+  const counts = workshopCounts();
+  document.getElementById('ws-overview').innerHTML = WORKSHOPS.map(w => {
+    const cur = counts[w.name]||0;
+    const pct = Math.min(100, Math.round(cur/w.max*100));
+    const cls = pct>=100?'full':pct>=80?'warn':'';
+    return `<div class="ws-row">
+      <span class="ws-name">${w.emoji} ${w.name}</span>
+      <div class="progress-bar"><div class="progress-fill ${cls}" style="width:${pct}%"></div></div>
+      <span class="ws-count">${cur}/${w.max}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderStudentTable() {
+  const arr = Object.entries(students).filter(([,s]) =>
+    currentFilter==='alle' ? true : s.kl && s.kl.startsWith(currentFilter)
+  );
+  const tbody = document.getElementById('student-tbody');
+  if (!arr.length) { tbody.innerHTML='<tr><td colspan="8" class="empty-cell">Keine Einträge</td></tr>'; return; }
+  tbody.innerHTML = arr
+    .sort((a,b) => (a[1].nn||'').localeCompare(b[1].nn||''))
+    .map(([,s]) => {
+      const w = s.wishes||[];
+      const a = s.assigned||[];
+      return `<tr>
+        <td class="name-cell">${s.nn||''}, ${s.vn||''}</td>
+        <td>${s.kl||''}</td>
+        <td class="wish-cell" title="${w[0]||''}">${w[0]||'–'}</td>
+        <td class="wish-cell" title="${w[1]||''}">${w[1]||'–'}</td>
+        <td class="wish-cell" title="${w[2]||''}">${w[2]||'–'}</td>
+        <td class="wish-cell" title="${w[3]||''}">${w[3]||'–'}</td>
+        <td>${a[0] ? wishRank(s,a[0])+' '+a[0] : '–'}</td>
+        <td>${a[1] ? wishRank(s,a[1])+' '+a[1] : '–'}</td>
+      </tr>`;
+    }).join('');
+}
+
+function renderResultTab() {
+  const lists = {};
+  WORKSHOPS.forEach(w => lists[w.name]=[]);
+  Object.values(students).forEach(s => (s.assigned||[]).forEach(a => { if(a) lists[a].push(`${s.nn||''}, ${s.vn||''} (${s.kl||''})`); }));
+  document.getElementById('result-by-ws').innerHTML = WORKSHOPS.map(w => {
+    const cur = lists[w.name].length;
+    const pct = Math.min(100, Math.round(cur/w.max*100));
+    const pillCls = pct>=100?'full':pct>=80?'warn':'blue';
+    return `<details class="ws-details">
+      <summary>
+        <span class="ws-detail-name">${w.emoji} ${w.name}</span>
+        <span class="pill ${pillCls}">${cur}/${w.max}</span>
+      </summary>
+      <div class="ws-detail-body">
+        <div class="ws-detail-info">${w.details}</div>
+        <div class="ws-detail-list">
+          ${lists[w.name].length
+            ? lists[w.name].sort().map(n=>`<span>👤 ${n}</span>`).join('')
+            : '<span class="muted">Noch keine Zuteilungen</span>'}
+        </div>
+      </div>
+    </details>`;
+  }).join('');
+}
+
+// ——— Init ———
+initSelects();
+renderWorkshopCards();
+
+</script>
+</body>
+</html>
