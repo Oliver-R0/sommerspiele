@@ -548,22 +548,16 @@ function assignWorkshop(studentId, workshopName, result, used) {
 
   const already = result[studentId];
 
-  if (already.includes(workshopName))
-    return false;
+  if (already.includes(workshopName)) return false;
 
   const ws = WORKSHOPS.find(w => w.name === workshopName);
   if (!ws) return false;
 
-  // 🔴 globales Limit (2 Schienen => max * 2)
-  if (used[workshopName] >= ws.max * 2)
-    return false;
+  if (used[workshopName] >= ws.max * 2) return false;
 
-  already.push({
-    workshop: workshopName,
-    slot: already.length // optional
-  });
-
+  already.push(workshopName);
   used[workshopName]++;
+
   return true;
 }
   
@@ -580,7 +574,7 @@ window.runAssignment = function () {
     return;
 
   // =========================
-  // GLOBAL LIMIT SYSTEM
+  // Kapazität global (2 Schienen)
   // =========================
   const used = {};
   WORKSHOPS.forEach(w => used[w.name] = 0);
@@ -591,7 +585,7 @@ window.runAssignment = function () {
   const shuffled = [...arr].sort(() => Math.random() - 0.5);
 
   // =========================
-  // 1. WUNSCHVERTEILUNG
+  // 1. Wunschverteilung
   // =========================
   for (let p = 0; p < 4; p++) {
 
@@ -602,25 +596,21 @@ window.runAssignment = function () {
       const wsName = student.wishes?.[p];
       if (!wsName) return;
 
-      if (result[id].some(x => x.workshop === wsName)) return;
+      if (result[id].includes(wsName)) return;
 
       const ws = WORKSHOPS.find(w => w.name === wsName);
       if (!ws) return;
 
-      // 🔴 HARD LIMIT
       if (used[wsName] >= ws.max * 2) return;
 
-      result[id].push({
-        workshop: wsName,
-        slot: result[id].length
-      });
-
+      result[id].push(wsName);
       used[wsName]++;
+
     });
   }
 
   // =========================
-  // 2. FALLBACK (GARANTIERT 2 PLÄTZE)
+  // 2. FALLBACK (immer 2 Workshops)
   // =========================
   shuffled.forEach(([id, student]) => {
 
@@ -633,11 +623,9 @@ window.runAssignment = function () {
 
         const name = w.name;
 
-        if (result[id].some(x => x.workshop === name))
-          continue;
+        if (result[id].includes(name)) continue;
 
-        if (used[name] >= w.max * 2)
-          continue;
+        if (used[name] >= w.max * 2) continue;
 
         const idx = (student.wishes || []).indexOf(name);
 
@@ -655,11 +643,7 @@ window.runAssignment = function () {
 
       if (!best) break;
 
-      result[id].push({
-        workshop: best,
-        slot: result[id].length
-      });
-
+      result[id].push(best);
       used[best]++;
     }
   });
@@ -675,10 +659,9 @@ window.runAssignment = function () {
 
   update(ref(db), updates)
     .then(() =>
-      alert('✓ Zuteilung erfolgreich (keine Überfüllung mehr)')
+      alert('✓ Zuteilung erfolgreich (stabil & ohne Überfüllung)')
     );
 };
-
 window.removeDuplicates = async function() {
 
   const duplicates = removeDuplicateEntries();
