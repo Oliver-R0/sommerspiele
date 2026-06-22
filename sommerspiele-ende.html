@@ -544,7 +544,7 @@ window.submitForm = function() {
   setTimeout(() => { msgEl.textContent=''; msgEl.className='msg'; }, 5000);
 };
 
-function assignWorkshop(studentId, workshopName, result, counts0, counts1) {
+function assignWorkshop(studentId, workshopName, result, used) {
 
   const already = result[studentId];
 
@@ -552,35 +552,22 @@ function assignWorkshop(studentId, workshopName, result, counts0, counts1) {
     return false;
 
   const ws = WORKSHOPS.find(w => w.name === workshopName);
-
   if (!ws) return false;
 
-  if (counts0[workshopName] < ws.max) {
+  // 🔴 globales Limit (2 Schienen => max * 2)
+  if (used[workshopName] >= ws.max * 2)
+    return false;
 
-    already.push({
-      workshop: workshopName,
-      slot: 0
-    });
+  already.push({
+    workshop: workshopName,
+    slot: already.length // optional
+  });
 
-    counts0[workshopName]++;
-    return true;
-  }
-
-  if (counts1[workshopName] < ws.max) {
-
-    already.push({
-      workshop: workshopName,
-      slot: 1
-    });
-
-    counts1[workshopName]++;
-    return true;
-  }
-
-  return false;
+  used[workshopName]++;
+  return true;
 }
-
-window.runAssignment = function() {
+  
+window.runAssignment = function () {
 
   const arr = Object.entries(students);
 
@@ -589,27 +576,23 @@ window.runAssignment = function() {
     return;
   }
 
-  if (!confirm(`Zuteilung für ${arr.length} Schüler berechnen?`)) return;
+  if (!confirm(`Zuteilung für ${arr.length} Schüler berechnen?`))
+    return;
 
-  // ─────────────────────────────
-  // Kapazitäten pro Schiene
-  // ─────────────────────────────
-  const counts0 = {};
-  const counts1 = {};
-
-  WORKSHOPS.forEach(w => {
-    counts0[w.name] = 0;
-    counts1[w.name] = 0;
-  });
+  // =========================
+  // GLOBAL LIMIT SYSTEM
+  // =========================
+  const used = {};
+  WORKSHOPS.forEach(w => used[w.name] = 0);
 
   const result = {};
   arr.forEach(([id]) => result[id] = []);
 
   const shuffled = [...arr].sort(() => Math.random() - 0.5);
 
-  // ─────────────────────────────
-  // 1. Wunsch-Prioritäten
-  // ─────────────────────────────
+  // =========================
+  // 1. WUNSCHVERTEILUNG
+  // =========================
   for (let p = 0; p < 4; p++) {
 
     shuffled.forEach(([id, student]) => {
@@ -619,39 +602,26 @@ window.runAssignment = function() {
       const wsName = student.wishes?.[p];
       if (!wsName) return;
 
-      if (result[id].includes(wsName)) return;
+      if (result[id].some(x => x.workshop === wsName)) return;
 
       const ws = WORKSHOPS.find(w => w.name === wsName);
       if (!ws) return;
 
-      // prüfen: gibt es noch Platz in irgendeiner Schiene?
-      const canS0 = counts0[wsName] < ws.max;
-      const canS1 = counts1[wsName] < ws.max;
+      // 🔴 HARD LIMIT
+      if (used[wsName] >= ws.max * 2) return;
 
-      if (!canS0 && !canS1) return;
+      result[id].push({
+        workshop: wsName,
+        slot: result[id].length
+      });
 
-      result[id].push(wsName);
-
-      // bessere Verteilung: immer die weniger gefüllte Schiene nehmen,
-      // ABER nur wenn dort noch Platz ist
-      if (canS0 && canS1) {
-        if (counts0[wsName] <= counts1[wsName]) {
-          counts0[wsName]++;
-        } else {
-          counts1[wsName]++;
-        }
-      } else if (canS0) {
-        counts0[wsName]++;
-      } else {
-        counts1[wsName]++;
-      }
-
+      used[wsName]++;
     });
   }
 
-  // ─────────────────────────────
-  // 2. Fallback: sicher 2 Workshops pro Schüler
-  // ─────────────────────────────
+  // =========================
+  // 2. FALLBACK (GARANTIERT 2 PLÄTZE)
+  // =========================
   shuffled.forEach(([id, student]) => {
 
     while (result[id].length < 2) {
@@ -663,21 +633,19 @@ window.runAssignment = function() {
 
         const name = w.name;
 
-        if (result[id].includes(name)) continue;
+        if (result[id].some(x => x.workshop === name))
+          continue;
 
-        const canS0 = counts0[name] < w.max;
-        const canS1 = counts1[name] < w.max;
-
-        if (!canS0 && !canS1) continue;
+        if (used[name] >= w.max * 2)
+          continue;
 
         const idx = (student.wishes || []).indexOf(name);
 
-        let score = 0;
+        let score = 1;
         if (idx === 0) score = 1000;
         else if (idx === 1) score = 500;
         else if (idx === 2) score = 250;
         else if (idx === 3) score = 100;
-        else score = 1;
 
         if (score > bestScore) {
           bestScore = score;
@@ -687,21 +655,18 @@ window.runAssignment = function() {
 
       if (!best) break;
 
-      result[id].push(best);
+      result[id].push({
+        workshop: best,
+        slot: result[id].length
+      });
 
-      const ws = WORKSHOPS.find(w => w.name === best);
-
-      if (counts0[best] < ws.max && counts0[best] <= counts1[best]) {
-        counts0[best]++;
-      } else {
-        counts1[best]++;
-      }
+      used[best]++;
     }
   });
 
-  // ─────────────────────────────
-  // 3. Speichern (nur Namen wie vorher)
-  // ─────────────────────────────
+  // =========================
+  // 3. SPEICHERN
+  // =========================
   const updates = {};
 
   Object.keys(result).forEach(id => {
@@ -709,10 +674,10 @@ window.runAssignment = function() {
   });
 
   update(ref(db), updates)
-    .then(() => alert('✓ Zuteilung erfolgreich und kapazitäts-sicher abgeschlossen!'));
+    .then(() =>
+      alert('✓ Zuteilung erfolgreich (keine Überfüllung mehr)')
+    );
 };
-  
-
 
 window.removeDuplicates = async function() {
 
