@@ -544,6 +544,42 @@ window.submitForm = function() {
   setTimeout(() => { msgEl.textContent=''; msgEl.className='msg'; }, 5000);
 };
 
+function assignWorkshop(studentId, workshopName, result, counts0, counts1) {
+
+  const already = result[studentId];
+
+  if (already.includes(workshopName))
+    return false;
+
+  const ws = WORKSHOPS.find(w => w.name === workshopName);
+
+  if (!ws) return false;
+
+  if (counts0[workshopName] < ws.max) {
+
+    already.push({
+      workshop: workshopName,
+      slot: 0
+    });
+
+    counts0[workshopName]++;
+    return true;
+  }
+
+  if (counts1[workshopName] < ws.max) {
+
+    already.push({
+      workshop: workshopName,
+      slot: 1
+    });
+
+    counts1[workshopName]++;
+    return true;
+  }
+
+  return false;
+}
+
 window.runAssignment = function() {
 
   const arr = Object.entries(students);
@@ -574,110 +610,105 @@ window.runAssignment = function() {
   const shuffled =
     [...arr].sort(() => Math.random() - 0.5);
 
-  for (let wishPriority = 0; wishPriority < 4; wishPriority++) {
+  // Wunsch 1 -> Wunsch 4
+  for (let priority = 0; priority < 4; priority++) {
 
     shuffled.forEach(([id, student]) => {
 
-      if (result[id].length >= 2) return;
-
-      const workshop =
-        student.wishes[wishPriority];
-
-      if (!workshop) return;
-
-      if (result[id].includes(workshop))
+      if (result[id].length >= 2)
         return;
 
       const ws =
-        WORKSHOPS.find(w => w.name === workshop);
+        student.wishes?.[priority];
 
-      const totalUsed =
-        counts0[workshop] +
-        counts1[workshop];
-
-      if (totalUsed >= ws.max * 2)
+      if (!ws)
         return;
 
-      result[id].push(workshop);
-
-      if (counts0[workshop] <= counts1[workshop]) {
-        counts0[workshop]++;
-      } else {
-        counts1[workshop]++;
-      }
+      assignWorkshop(
+        id,
+        ws,
+        result,
+        counts0,
+        counts1
+      );
 
     });
 
   }
 
-  arr.forEach(([id]) => {
+  // Fehlende Plätze auffüllen
+  shuffled.forEach(([id, student]) => {
 
     while (result[id].length < 2) {
 
       let bestWorkshop = null;
       let bestScore = -1;
 
-      WORKSHOPS.forEach(w => {
+      student.wishes.forEach((ws, index) => {
 
-        if (result[id].includes(w.name))
-          return;
+        if (
+          result[id].some(
+            x => x.workshop === ws
+          )
+        ) return;
 
-        const used =
-          counts0[w.name] +
-          counts1[w.name];
+        const cap =
+          WORKSHOPS.find(
+            w => w.name === ws
+          );
 
-        if (used >= w.max * 2)
-          return;
+        const free =
+          counts0[ws] < cap.max ||
+          counts1[ws] < cap.max;
 
-        let score = 1;
+        if (!free) return;
 
-        const wishes =
-          students[id].wishes || [];
-
-        const idx =
-          wishes.indexOf(w.name);
-
-        if (idx === 0) score = 1000;
-        else if (idx === 1) score = 500;
-        else if (idx === 2) score = 250;
-        else if (idx === 3) score = 100;
+        const score =
+          100 - index;
 
         if (score > bestScore) {
+
           bestScore = score;
-          bestWorkshop = w.name;
+          bestWorkshop = ws;
+
         }
 
       });
 
-      if (!bestWorkshop) break;
+      if (!bestWorkshop)
+        break;
 
-      result[id].push(bestWorkshop);
-
-      if (counts0[bestWorkshop] <= counts1[bestWorkshop]) {
-        counts0[bestWorkshop]++;
-      } else {
-        counts1[bestWorkshop]++;
-      }
+      assignWorkshop(
+        id,
+        bestWorkshop,
+        result,
+        counts0,
+        counts1
+      );
 
     }
 
   });
 
+  // Speichern
   const updates = {};
 
   Object.keys(result).forEach(id => {
 
-    updates[
-      `students/${id}/assigned`
-    ] = result[id];
+    updates[`students/${id}/assigned`] =
+      result[id].map(
+        x => x.workshop
+      );
 
   });
 
   update(ref(db), updates)
     .then(() => {
+
       alert(
-        '✓ Faire Zuteilung abgeschlossen.'
+        '✓ Zuteilung abgeschlossen'
       );
+
     });
 
 };
