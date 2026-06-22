@@ -521,99 +521,143 @@ window.submitForm = function() {
   setTimeout(() => { msgEl.textContent=''; msgEl.className='msg'; }, 5000);
 };
 
-// ——— Zuteilung (KORRIGIERT) ———
 window.runAssignment = function() {
-  const arr = Object.entries(students);
-  if (!arr.length) return alert('Keine Anmeldungen vorhanden.');
-  if (!confirm(`Zuteilung für ${arr.length} Schüler/innen berechnen?\n\nBestehende Zuteilungen werden überschrieben.`)) return;
 
-  // Kapazitätszähler separat pro Schiene — Schiene 1 und Schiene 2 sind unabhängig!
-  // (Ein Workshop kann also in beiden Schienen laufen und je max Plätze vergeben.)
-  const counts0 = {}; // Schiene 1
-  const counts1 = {}; // Schiene 2
-  WORKSHOPS.forEach(w => { counts0[w.name] = 0; counts1[w.name] = 0; });
+  const arr = Object.entries(students);
+
+  if (!arr.length) {
+    alert('Keine Anmeldungen vorhanden.');
+    return;
+  }
+
+  if (!confirm(
+    `Zuteilung für ${arr.length} Schüler berechnen?`
+  )) return;
+
+  const counts0 = {};
+  const counts1 = {};
+
+  WORKSHOPS.forEach(w => {
+    counts0[w.name] = 0;
+    counts1[w.name] = 0;
+  });
 
   const result = {};
-  arr.forEach(([k]) => result[k] = [null, null]);
 
-  // Hilfsfunktion: Versuche Wunsch Nr. wishIndex für den Schüler in Slot slot einzutragen
-  function tryWish(key, student, wishIndex, slot) {
-    const ws = (student.wishes || [])[wishIndex];
-    if (!ws) return false;
-    const cap = WORKSHOPS.find(w => w.name === ws);
-    if (!cap) return false;
-    const counts = slot === 0 ? counts0 : counts1;
-    const other = result[key][slot === 0 ? 1 : 0]; // kein doppelter Workshop
-    if (counts[ws] < cap.max && ws !== other) {
-      result[key][slot] = ws;
-      counts[ws]++;
-      return true;
-    }
-    return false;
-  }
+  arr.forEach(([id]) => {
+    result[id] = [];
+  });
 
-  // Fallback: ersten noch freien Workshop nehmen
-  function assignFallback(key, student, slot) {
-    const counts = slot === 0 ? counts0 : counts1;
-    const other = result[key][slot === 0 ? 1 : 0];
-    for (const w of WORKSHOPS) {
-      if (counts[w.name] < w.max && w.name !== other) {
-        result[key][slot] = w.name;
-        counts[w.name]++;
+  const shuffled =
+    [...arr].sort(() => Math.random() - 0.5);
+
+  for (let wishPriority = 0; wishPriority < 4; wishPriority++) {
+
+    shuffled.forEach(([id, student]) => {
+
+      if (result[id].length >= 2) return;
+
+      const workshop =
+        student.wishes[wishPriority];
+
+      if (!workshop) return;
+
+      if (result[id].includes(workshop))
         return;
+
+      const ws =
+        WORKSHOPS.find(w => w.name === workshop);
+
+      const totalUsed =
+        counts0[workshop] +
+        counts1[workshop];
+
+      if (totalUsed >= ws.max * 2)
+        return;
+
+      result[id].push(workshop);
+
+      if (counts0[workshop] <= counts1[workshop]) {
+        counts0[workshop]++;
+      } else {
+        counts1[workshop]++;
       }
-    }
+
+    });
+
   }
 
-  // Zufällige Reihenfolge = alle haben faire Chancen
-  const shuffleArr = a => [...a].sort(() => Math.random() - 0.5);
+  arr.forEach(([id]) => {
 
-  // ════════════════════════════════════════════════
-  // SCHIENE 1 — Wunschreihenfolge: W1 → W2 → W3/W4 → Fallback
-  // ════════════════════════════════════════════════
-  const s1 = shuffleArr(arr);
+    while (result[id].length < 2) {
 
-  // Runde 1a: alle bekommen Erstwunsch wenn möglich
-  s1.forEach(([k,s]) => { tryWish(k, s, 0, 0); });
-  // Runde 1b: wer keinen Erstwunsch bekam → Zweitwunsch
-  s1.forEach(([k,s]) => { if (result[k][0]===null) tryWish(k, s, 1, 0); });
-  // Runde 1c: noch ohne → Dritt- oder Viertwunsch
-  s1.forEach(([k,s]) => {
-    if (result[k][0]===null) for (let p=2; p<4; p++) if (tryWish(k,s,p,0)) break;
+      let bestWorkshop = null;
+      let bestScore = -1;
+
+      WORKSHOPS.forEach(w => {
+
+        if (result[id].includes(w.name))
+          return;
+
+        const used =
+          counts0[w.name] +
+          counts1[w.name];
+
+        if (used >= w.max * 2)
+          return;
+
+        let score = 1;
+
+        const wishes =
+          students[id].wishes || [];
+
+        const idx =
+          wishes.indexOf(w.name);
+
+        if (idx === 0) score = 1000;
+        else if (idx === 1) score = 500;
+        else if (idx === 2) score = 250;
+        else if (idx === 3) score = 100;
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestWorkshop = w.name;
+        }
+
+      });
+
+      if (!bestWorkshop) break;
+
+      result[id].push(bestWorkshop);
+
+      if (counts0[bestWorkshop] <= counts1[bestWorkshop]) {
+        counts0[bestWorkshop]++;
+      } else {
+        counts1[bestWorkshop]++;
+      }
+
+    }
+
   });
-  // Runde 1d: absolute Fallbacks
-  s1.forEach(([k,s]) => { if (result[k][0]===null) assignFallback(k, s, 0); });
 
-  // ════════════════════════════════════════════════
-  // SCHIENE 2 — neue zufällige Reihenfolge, bevorzugt den nächsten Wunsch
-  // ════════════════════════════════════════════════
-  const s2 = shuffleArr(arr);
-
-  // Runde 2a: Wer W1 in Schiene 1 bekommen hat → bevorzugt W2 in Schiene 2
-  //           Wer W1 NICHT bekommen hat → versucht W1 nochmal (in Schiene 2)
-  s2.forEach(([k,s]) => {
-    const got = result[k][0];
-    const w = s.wishes || [];
-    // Startindex: wenn Schiene-1 = Wunsch1, starte bei Wunsch2; sonst Wunsch1
-    const start = (got === w[0]) ? 1 : 0;
-    for (let p = start; p < 4; p++) if (tryWish(k, s, p, 1)) return;
-    // Hat keinen passenden ab start gefunden → alles nochmal von vorne
-    for (let p = 0; p < 4; p++) if (tryWish(k, s, p, 1)) return;
-  });
-
-  // Runde 2b: absolute Fallbacks für alle ohne Schiene-2-Zuteilung
-  s2.forEach(([k,s]) => { if (result[k][1]===null) assignFallback(k, s, 1); });
-
-  // ════════════════════════════════════════════════
-  // In Firebase speichern
-  // ════════════════════════════════════════════════
   const updates = {};
-  arr.forEach(([k]) => {
-    updates[`students/${k}/assigned`] = result[k].filter(Boolean);
-  });
-  update(ref(db), updates).then(() => alert('✓ Zuteilung abgeschlossen! Sieh dir das Ergebnis im "Ergebnis"-Tab an.'));
-};
 
+  Object.keys(result).forEach(id => {
+
+    updates[
+      `students/${id}/assigned`
+    ] = result[id];
+
+  });
+
+  update(ref(db), updates)
+    .then(() => {
+      alert(
+        '✓ Faire Zuteilung abgeschlossen.'
+      );
+    });
+
+};
 window.clearAll = function() {
   if (!confirm('Wirklich ALLE Anmeldungen löschen?\nDas kann nicht rückgängig gemacht werden!')) return;
   set(studentsRef, null);
