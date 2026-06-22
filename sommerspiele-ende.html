@@ -241,6 +241,9 @@ document.addEventListener('DOMContentLoaded', function() {
       <span class="top-bar-title">Verwaltung</span>
       <div class="btn-row">
         <button class="btn-sec" onclick="runAssignment()">🪄 Zuteilung berechnen</button>
+        <button class="btn-sec" onclick="removeDuplicates()">
+  👥 Duplikate löschen
+</button>
         <button class="btn-sec" onclick="exportCSV()">⬇️ Excel exportieren</button>
         <button class="btn-sec btn-danger" onclick="clearAll()">🗑️ Alles löschen</button>
         <button class="btn-sec" id="sign-out-btn" style="display:none" onclick="signOutAdmin()">🚪 Abmelden</button>
@@ -459,6 +462,26 @@ const WORKSHOPS = [
 let students = {};
 let currentFilter = 'alle';
 
+function removeDuplicateEntries() {
+
+  const seen = new Map();
+  const duplicates = [];
+
+  Object.entries(students).forEach(([id, s]) => {
+
+    const key =
+      `${(s.vn || '').trim().toLowerCase()}|${(s.nn || '').trim().toLowerCase()}`;
+
+    if (seen.has(key)) {
+      duplicates.push(id);
+    } else {
+      seen.set(key, id);
+    }
+
+  });
+
+  return duplicates;
+}
 // ——— Select-Initialisierung ———
 function initSelects() {
   const opts = WORKSHOPS.map(w => `<option value="${w.name}">${w.emoji} ${w.name} (max ${w.max})</option>`).join('');
@@ -658,6 +681,27 @@ window.runAssignment = function() {
     });
 
 };
+
+window.removeDuplicates = async function() {
+
+  const duplicates = removeDuplicateEntries();
+
+  if (!duplicates.length) {
+    alert('Keine Duplikate gefunden.');
+    return;
+  }
+
+  const updates = {};
+
+  duplicates.forEach(id => {
+    updates[`students/${id}`] = null;
+  });
+
+  await update(ref(db), updates);
+
+  alert(`${duplicates.length} Duplikate entfernt.`);
+};
+  
 window.clearAll = function() {
   if (!confirm('Wirklich ALLE Anmeldungen löschen?\nDas kann nicht rückgängig gemacht werden!')) return;
   set(studentsRef, null);
